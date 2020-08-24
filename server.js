@@ -6,17 +6,17 @@ const hbs = require('express-handlebars');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
-const { doesNotMatch } = require('assert');
+//const { doesNotMatch } = require('assert');
 
 
 const app = express();
 
 passport.use(new GoogleStrategy({
-  clientID: '593318209156-b46neftbp6u7grb5afhfvef0kak32aaa.apps.googleusercontent.com',
-  clientSecret: 'KmH1NjH944sP-Ycz8kU_JrdL',
-  callbackURL: 'http://localhost:8000/auth/google/callback'
+  clientID: process.env.clientID,
+  clientSecret: process.env.clientSecret,
+  callbackURL: process.env.callbackURL,
 }, (accessToken, refreshToken, profile, done) => {
-  done(null, profile);
+done(null, profile);
 }));
 
 // serialize user when saving to session
@@ -45,6 +45,16 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.get('/', (req, res) => {
   res.render('index');
 });
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] 
+}));
+
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/user/no-permission' }),
+  (req, res) => {
+    res.redirect('/user/logged');
+  }
+);
 
 app.get('/user/logged', (req, res) => {
   res.render('logged');
